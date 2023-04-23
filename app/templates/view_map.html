@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <button id="addSmellBtn" class="btn btn-primary mb-3">Add Smell</button>
+  <div id="map"></div>
+
+  <script>
+    function onMapClick(e) {
+      if (addSmellMode) {
+        // Save the clicked location's coordinates
+        const clickedLocation = e.latlng;
+
+        // Set the form's latitude and longitude fields to the clicked location's coordinates
+        document.getElementById('latitude').value = clickedLocation.lat;
+        document.getElementById('longitude').value = clickedLocation.lng;
+
+        // Disable addSmellMode
+        toggleAddSmellMode();
+      }
+    }
+
+    let addSmellMode = false;
+
+    function toggleAddSmellMode() {
+      addSmellMode = !addSmellMode;
+      document.getElementById('addSmellBtn').classList.toggle('btn-danger');
+      document.getElementById('addSmellBtn').innerHTML = addSmellMode ? 'Cancel' : 'Add Smell';
+    }
+    document.getElementById('addSmellBtn').addEventListener('click', toggleAddSmellMode);
+
+    // Create a new Leaflet map centered on the first smell
+    var map = L.map('map').setView([{{ smells[0].latitude }}, {{ smells[0].longitude }}], 13);
+    map.on('click', onMapClick);
+    // Add the OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Add a marker for each smell
+    {% for smell in smells %}
+      L.marker([{{ smell.latitude }}, {{ smell.longitude }}]).addTo(map)
+        .bindPopup("{{ smell.smell_type }} - {{ smell.intensity }}")
+    {% endfor %}
+  </script>
+{% endblock %}
