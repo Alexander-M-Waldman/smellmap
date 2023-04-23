@@ -1,0 +1,9 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-WTF
+psycopg2
+Jinja2
+Flask-Flash
+markupsafe==2.0.1
+

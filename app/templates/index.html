@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-sm-6">
+      {% include 'submit_smell.html' %}
+    </div>
+    <div class="col-sm-6 map-container">
+      {% include 'view_map.html' %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+  .map-container {
+    width: 100%;
+    height: 100vh;
+  }
+</style>
+{% endblock %}

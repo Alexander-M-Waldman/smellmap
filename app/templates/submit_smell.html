@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Submit Smell</h1>
+    <form action="{{ url_for('main.submit_smell') }}" method="post" novalidate>        
+        {{ form.hidden_tag() }}
+        {{ form.latitude.label }} {{ form.latitude }}<br>
+        {{ form.longitude.label }} {{ form.longitude }}<br>
+        {{ form.smell_type.label }} {{ form.smell_type(class='form-control') }}<br>
+        {{ form.intensity.label }} {{ form.intensity }}<br>
+        {{ form.description.label }} {{ form.description }}<br>
+        <button type="button" onclick="getLocation()">Get My Location</button>
+        <!-- <input type="submit" value="Submit"> -->
+        {{ form.submit() }}
+    </form>
+
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function showPosition(position) {
+            var latitudeField = document.getElementById("latitude");
+            var longitudeField = document.getElementById("longitude");
+            latitudeField.value = position.coords.latitude;
+            longitudeField.value = position.coords.longitude;
+        }
+    </script>
+
+{% endblock %}
+
