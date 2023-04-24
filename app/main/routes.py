@@ -1,4 +1,5 @@
 from flask import render_template, redirect, url_for, request, flash
+from sqlalchemy.orm import joinedload
 from app.main import bp
 from app.models import Smell, SmellType, SmellSource, User
 from app.forms import SmellForm
@@ -21,43 +22,41 @@ def submit_smell():
     print("submit_smell function entered")
     smell_types = SmellType.query.all()
     form = SmellForm(smell_types) 
-    # form = SmellForm()
     form.smell_type.choices = [(str(smell_type.id), smell_type.name) for smell_type in SmellType.query.order_by(SmellType.name).all()]
-
+    print(form.smell_type.choices)
     if form.validate_on_submit():
+        print("smell type data: ", form.smell_type.data)
+        smell_type = SmellType.query.filter_by(id=form.smell_type.data).first()
+        print("smell_type query result: ", smell_type)
+        for field in form._fields:
+            v = form[field].data
+            print(field, v, type(v))
         smell = Smell(
             latitude=form.latitude.data,
             longitude=form.longitude.data,
-            smell_type=form.smell_type.data,
+            smell_type_id=smell_type.id,
             intensity=form.intensity.data,
             description=form.description.data
         )
+
         db.session.add(smell)
-        print("before commit")
         try:
+            print("committing smell report...")
             db.session.commit()
-            print('after commit')
+            print("committed!")
         except Exception as e:
             db.session.rollback()
             print(f'Error committing transaction: {e}')
-            flash('Failed to submit smell!')
+            flash('Failed to submit smell!', 'error')
             return redirect(url_for('main.submit_smell'))
-        flash('Smell submitted successfully!')
+        flash('Smell submitted successfully!', 'info')
         return redirect(url_for('main.index'))
         # return redirect(url_for('map_bp.map'))
-
-    # print(f"form: {form}")
-    # print(f"errors: {form.errors}")
-    # print(f"csrf_token: {form.csrf_token}")
-    # print(f"latitude: {form.latitude}")
-    # print(f"longitude: {form.longitude}")
-    # print(f"smell_type: {form.smell_type}")
-    # print(f"intensity: {form.intensity}")
-    # print(f"description: {form.description}")
     
     else:
-        flash('Please fill in all required fields')
+        flash('Please fill in all required fields', 'error')
         return redirect(url_for('main.index'))
+        # return
 
 
     return render_template('submit_smell.html', form=form)
@@ -68,3 +67,13 @@ def submit_smell():
 def view_map():
     smells = Smell.query.all()
     return render_template('view_map.html', smells=smells)
+
+
+@bp.route('/admin')
+def admin():
+    # You can fetch the data you want to display from a database or any other source
+    # For this example, let's use some dummy data
+    # smells = Smell.query.all()
+    smells = Smell.query.options(joinedload(Smell.smell_type)).all()
+
+    return render_template('admin.html', smells=smells)

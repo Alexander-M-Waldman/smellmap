@@ -12,4 +12,6 @@ class SmellForm(FlaskForm):
 
     def __init__(self, smell_types, *args, **kwargs):
         super(SmellForm, self).__init__(*args, **kwargs)
-        self.smell_type.choices = [(smell_type.id, smell_type.name) for smell_type in smell_types]
+        self.smell_type.choices = [(str(smell_type.id), smell_type.name) for smell_type in smell_types]
+        # self.smell_type.choices = [(smell_type.id, smell_type.name) for smell_type in smell_types]
+

@@ -5,6 +5,7 @@
   <div id="map"></div>
 
   <script>
+    // select location to report by clicking on map:
     function onMapClick(e) {
       if (addSmellMode) {
         // Save the clicked location's coordinates
@@ -18,7 +19,7 @@
         toggleAddSmellMode();
       }
     }
-
+    // only enable when SmellMode is true:
     let addSmellMode = false;
 
     function toggleAddSmellMode() {
@@ -28,8 +29,40 @@
     }
     document.getElementById('addSmellBtn').addEventListener('click', toggleAddSmellMode);
 
+    // create smell icon based on smell_type and intensity:
+    function createSmellIcon(smellTypeColor, intensity) {
+      console.log("smellTypeColor: ", smellTypeColor, "intensity: ", intensity)
+      const icon = L.divIcon({
+        className: 'smell-marker',
+        html: `<div class="smell-icon" style="background-color: ${smellTypeColor}; opacity: ${intensity / 10};"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+      });
+      return icon;
+    }
+
+    // function addSmellMarker(latitude, longitude, smellTypeColor, intensity, smellTypeName) {
+    //   const icon = createSmellIcon(smellTypeColor, intensity);
+    //   L.marker([latitude, longitude], { icon: icon })
+    //     .addTo(map)
+    //     .bindPopup(`${smellTypeName} - ${intensity}`);
+    // }
+    function addSmellMarker(latitude, longitude, smellTypeColor, intensity, smellTypeName) {
+      console.log(latitude, longitude, smellTypeColor, intensity, "smellTypeName: ", smellTypeName)
+      const icon = createSmellIcon(smellTypeColor, intensity);
+      L.marker([latitude, longitude], { icon: icon })
+        .addTo(map)
+        .bindPopup(`${smellTypeName} - ${intensity}`);
+    }
+
+
     // Create a new Leaflet map centered on the first smell
-    var map = L.map('map').setView([{{ smells[0].latitude }}, {{ smells[0].longitude }}], 13);
+    {% if smells %}
+      var map = L.map('map').setView([{{ smells[0].latitude }}, {{ smells[0].longitude }}], 13);
+    {% else %}
+      var map = L.map('map').setView([0, 0], 13);
+    {% endif %}
+    
     map.on('click', onMapClick);
     // Add the OpenStreetMap tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -37,9 +70,27 @@
     }).addTo(map);
 
     // Add a marker for each smell
-    {% for smell in smells %}
-      L.marker([{{ smell.latitude }}, {{ smell.longitude }}]).addTo(map)
-        .bindPopup("{{ smell.smell_type }} - {{ smell.intensity }}")
-    {% endfor %}
+    // {% if smells %}
+    //   {% for smell in smells %}
+    //     addSmellMarker({{ smell.latitude }}, {{ smell.longitude }}, {{ smell.smell_type.color }}, {{ smell.intensity }}, {{ smell.smell_type_id.name }});
+    //   {% endfor %}
+    // {% else %}
+    //   var map = L.map('map').setView([0, 0], 13);
+    // {% endif %}
+
+    {% if smells %}
+      {% for smell in smells %}
+        addSmellMarker({{ smell.latitude }}, {{ smell.longitude }}, "{{ smell.smell_type.color }}", {{ smell.intensity }}, "{{ smell.smell_type.name }}");
+      {% endfor %}
+    {% else %}
+      var map = L.map('map').setView([0, 0], 13);
+    {% endif %}
+
+    // {% for smell in smells %}
+    //   L.marker([{{ smell.latitude }}, {{ smell.longitude }}]).addTo(map)
+    //     .bindPopup("{{ smell.smell_type }} - {{ smell.intensity }}")
+    // {% endfor %}
+
+
   </script>
 {% endblock %}
