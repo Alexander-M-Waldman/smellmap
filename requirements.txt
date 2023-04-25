@@ -2,8 +2,9 @@ Flask
 Flask-SQLAlchemy
 Flask-Migrate
 Flask-WTF
+Flask-Login
 psycopg2
 Jinja2
-Flask-Flash
 markupsafe==2.0.1
+email_validator
 

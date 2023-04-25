@@ -2,19 +2,32 @@ from flask import Blueprint, render_template
 from flask_sqlalchemy import SQLAlchemy
 
 
-bp = Blueprint('main', __name__)
 
+main_bp = Blueprint('main', __name__)
 # import routes
-import app.main.routes
+from app.main import routes
 
-map_bp = Blueprint('map_bp', __name__)
+# bp = Blueprint('main', __name__)
+# map_bp = Blueprint('map_bp', __name__)
 
-@map_bp.route('/map')
-def show_map():
-    return render_template('map.html')
+# @map_bp.route('/map')
+# def show_map():
+#     return render_template('map.html')
 
-main_bp = Blueprint('main_bp', __name__)
+# main_bp = Blueprint('main', __name__)
 
-@main_bp.route('/')
-def index():
-    return render_template('index.html')
+# @main_bp.route('/')
+# def index():
+#     return render_template('index.html')
+
+# @main_bp.route('/login')
+# def login():
+#     return render_template('login.html')
+
+# @main_bp.route('/register')
+# def register():
+#     return render_template('register.html')
+
+# @main_bp.route('/logout')
+# def logout():
+#     return render_template('index.html')

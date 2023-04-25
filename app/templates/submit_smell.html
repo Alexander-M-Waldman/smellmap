@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% block header %}{% endblock %}
+
 {% block content %}
     <h1>Submit Smell</h1>
     <form action="{{ url_for('main.submit_smell') }}" method="post" novalidate>        
@@ -8,7 +10,7 @@
         {{ form.smell_type.label }} {{ form.smell_type(class='form-control') }}<br>
         {{ form.intensity.label }} {{ form.intensity }}<br>
         {{ form.description.label }} {{ form.description }}<br>
-        <button type="button" onclick="getLocation()">Get My Location</button>
+        <button type="button" class="btn btn-primary mb-3" onclick="getLocation()">Get My Location</button>
         <!-- <input type="submit" value="Submit"> -->
         {{ form.submit() }}
     </form>
@@ -31,4 +33,6 @@
     </script>
 
 {% endblock %}
+{% block footer %}{% endblock %}
+
 

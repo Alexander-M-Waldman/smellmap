@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Admin Dashboard</h1>
+
+  <h2>Smells</h2>
+  <table class="table table-dark table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>Timestamp Reported</th>
+        <th>ID</th>
+        <th>Smell Type</th>
+        <th>Intensity</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for smell in smells|sort(attribute='timestamp', reverse=True) %}
+        <tr>
+          <td>{{ smell.timestamp }}</td>  
+          <td>{{ smell.id }}</td>
+          <td>{{ smell.smell_type.name }}</td>
+          <td>{{ smell.intensity }}</td>
+          <td>{{ smell.latitude }}</td>
+          <td>{{ smell.longitude }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

@@ -1,9 +1,14 @@
 {% extends 'base.html' %}
+{% block header %}{% endblock %}
 
 {% block content %}
+
   <button id="addSmellBtn" class="btn btn-primary mb-3">Add Smell</button>
   <div id="map"></div>
-
+  <div id="address-search-container">
+    <input id="address-search-input" type="text" placeholder="Enter an address">
+    <button id="address-search-button" class="btn btn-primary mb-3">Search</button>
+  </div>
   <script>
     // select location to report by clicking on map:
     function onMapClick(e) {
@@ -31,7 +36,6 @@
 
     // create smell icon based on smell_type and intensity:
     function createSmellIcon(smellTypeColor, intensity) {
-      console.log("smellTypeColor: ", smellTypeColor, "intensity: ", intensity)
       const icon = L.divIcon({
         className: 'smell-marker',
         html: `<div class="smell-icon" style="background-color: ${smellTypeColor}; opacity: ${intensity / 10};"></div>`,
@@ -41,19 +45,38 @@
       return icon;
     }
 
-    // function addSmellMarker(latitude, longitude, smellTypeColor, intensity, smellTypeName) {
-    //   const icon = createSmellIcon(smellTypeColor, intensity);
-    //   L.marker([latitude, longitude], { icon: icon })
-    //     .addTo(map)
-    //     .bindPopup(`${smellTypeName} - ${intensity}`);
-    // }
+  
     function addSmellMarker(latitude, longitude, smellTypeColor, intensity, smellTypeName) {
-      console.log(latitude, longitude, smellTypeColor, intensity, "smellTypeName: ", smellTypeName)
       const icon = createSmellIcon(smellTypeColor, intensity);
       L.marker([latitude, longitude], { icon: icon })
         .addTo(map)
         .bindPopup(`${smellTypeName} - ${intensity}`);
     }
+
+    function searchAddress() {
+      const address = document.getElementById('address-search-input').value;
+      const geocodeUrl = '{{geocoder_url}}' + address;
+
+      fetch(geocodeUrl)
+        .then(response => response.json())
+        .then(data => {
+          const coords = data.features[0].geometry.coordinates;
+          const lat = coords[1]
+          const lng = coords[0]
+          map.panTo(new L.LatLng(lat, lng));
+          map.setZoom(20); // Change 15 to the desired zoom level
+
+        })
+        .catch(error => console.error(error));
+    }
+
+    document.getElementById('address-search-button').addEventListener('click', searchAddress);
+
+    document.getElementById('address-search-input').addEventListener('keyup', event => {
+      if (event.key === 'Enter') {
+        searchAddress();
+      }
+    });
 
 
     // Create a new Leaflet map centered on the first smell
@@ -69,15 +92,6 @@
       attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Add a marker for each smell
-    // {% if smells %}
-    //   {% for smell in smells %}
-    //     addSmellMarker({{ smell.latitude }}, {{ smell.longitude }}, {{ smell.smell_type.color }}, {{ smell.intensity }}, {{ smell.smell_type_id.name }});
-    //   {% endfor %}
-    // {% else %}
-    //   var map = L.map('map').setView([0, 0], 13);
-    // {% endif %}
-
     {% if smells %}
       {% for smell in smells %}
         addSmellMarker({{ smell.latitude }}, {{ smell.longitude }}, "{{ smell.smell_type.color }}", {{ smell.intensity }}, "{{ smell.smell_type.name }}");
@@ -86,11 +100,7 @@
       var map = L.map('map').setView([0, 0], 13);
     {% endif %}
 
-    // {% for smell in smells %}
-    //   L.marker([{{ smell.latitude }}, {{ smell.longitude }}]).addTo(map)
-    //     .bindPopup("{{ smell.smell_type }} - {{ smell.intensity }}")
-    // {% endfor %}
-
 
   </script>
 {% endblock %}
+{% block footer %}{% endblock %}

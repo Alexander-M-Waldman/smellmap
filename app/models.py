@@ -1,7 +1,10 @@
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
+from flask_login import UserMixin
 from datetime import datetime
 from app import db
+
 
 
 # db = SQLAlchemy()
@@ -50,15 +53,24 @@ class SmellSource(db.Model):
         return f'<SmellSource {self.name}>'
     
 
-class User(db.Model):
+class User(db.Model, UserMixin):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
     smells = db.relationship('Smell', backref='submitter', lazy='dynamic')
+    is_validator = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f'<User {self.username}>'
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
 
 def init_app(app):
     db.init_app(app)

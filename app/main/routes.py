@@ -1,27 +1,33 @@
 from flask import render_template, redirect, url_for, request, flash
+from flask_login import login_user, logout_user, login_required
 from sqlalchemy.orm import joinedload
-from app.main import bp
+from config import Config
+from app.main import main_bp
 from app.models import Smell, SmellType, SmellSource, User
-from app.forms import SmellForm
+from app.forms import SmellForm, RegistrationForm, LoginForm
 from app import db
 
 
-@bp.route('/', methods=['GET', 'POST'])
+@main_bp.route('/', methods=['GET', 'POST'])
 def index():
-    # form = SmellForm()  # Create an instance of the form class
+    geocoder_url = Config.GEOCODER_URL    
     smells = Smell.query.all()  # Query all smells from the database
     smell_types = SmellType.query.all()
     form = SmellForm(smell_types=smell_types)
-    print("rendering index.html...")
+    form.smell_type.choices = [(str(smell_type.id), smell_type.name) for smell_type in SmellType.query.order_by(SmellType.name).all()]
+    print("starting index route...")
     # print(render_template('index.html', form=form, smells=smells))  # Pass the form instance and smells to the template
-    return render_template('index.html', form=form, smells=smells)
+    return render_template('index.html', form=form, smells=smells, geocoder_url=geocoder_url)
+    # return render_template('index.html', smells=smells)
 
 
-@bp.route('/submit_smell', methods=['GET', 'POST'])
+
+@main_bp.route('/submit_smell', methods=['GET', 'POST'])
 def submit_smell():
     print("submit_smell function entered")
     smell_types = SmellType.query.all()
     form = SmellForm(smell_types) 
+    print("form: ", form)
     form.smell_type.choices = [(str(smell_type.id), smell_type.name) for smell_type in SmellType.query.order_by(SmellType.name).all()]
     print(form.smell_type.choices)
     if form.validate_on_submit():
@@ -58,18 +64,20 @@ def submit_smell():
         return redirect(url_for('main.index'))
         # return
 
-
+    print(form)
     return render_template('submit_smell.html', form=form)
 
 
 
-@bp.route('/view_map')
+@main_bp.route('/view_map')
 def view_map():
     smells = Smell.query.all()
-    return render_template('view_map.html', smells=smells)
+    # return render_template('view_map.html', smells=smells)
+    geocoder_url = Config.GEOCODER_URL    
+    return render_template(url_for('main.view_map'), smells=smells)
 
 
-@bp.route('/admin')
+@main_bp.route('/admin')
 def admin():
     # You can fetch the data you want to display from a database or any other source
     # For this example, let's use some dummy data
@@ -77,3 +85,38 @@ def admin():
     smells = Smell.query.options(joinedload(Smell.smell_type)).all()
 
     return render_template('admin.html', smells=smells)
+
+
+@main_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Congratulations, you are now a registered user!')
+        return redirect(url_for('main.login'))
+    return render_template('register.html', title='Register', form=form)
+
+@main_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        # Add your authentication logic here
+        user = User.query.filter_by(email=form.email.data).first()
+        if user is not None and user.check_password(form.password.data):
+            login_user(user, remember=form.remember_me.data)
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('main.index'))
+        else:
+            flash('Invalid email or password')
+    return render_template('login.html', title='Sign In', form=form)
+
+
+@main_bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.')
+    return redirect(url_for('main.index'))
